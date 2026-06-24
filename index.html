@@ -19,9 +19,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* ترتيب رأسي متتابع لتجنب التمدد الخاطئ */
+            justify-content: flex-start;
             height: 100vh;
-            padding: 5px 10px; /* تقليل الحواف الميتة */
+            padding: 5px 10px;
             overflow: hidden;
         }
 
@@ -84,12 +84,12 @@
             display: inline-block;
         }
 
-        /* منطقة طيران البالونات - تم ضبط ارتفاعها بدقة لرفع الزر السفلي */
+        /* منطقة طيران البالونات */
         #game-area {
             position: relative;
             width: 100%;
             max-width: 330px;
-            height: 38vh; /* تم إنقاص الارتفاع بشكل مدروس ليظهر الزر تحتها تماماً */
+            height: 42vh; /* تم إعطاء مساحة أوسع قليلاً بعد إخفاء الزر */
             background: rgba(255, 255, 255, 0.5);
             border: 3px dashed #60a5fa;
             border-radius: 18px;
@@ -123,7 +123,7 @@
         }
 
         @keyframes floatUp {
-            0% { transform: translateY(45vh); }
+            0% { transform: translateY(48vh); }
             100% { transform: translateY(-80px); }
         }
 
@@ -144,7 +144,7 @@
             100% { transform: translateY(200px) translateX(var(--x-move)) rotate(360deg); opacity: 0; }
         }
 
-        /* زر البدء - أصبح مرتفعاً وآمناً من شريط الجوال */
+        /* زر البدء */
         .btn {
             background-color: #10b981;
             color: white;
@@ -155,7 +155,8 @@
             border-radius: 50px;
             cursor: pointer;
             box-shadow: 0 4px #047857;
-            margin-bottom: 15px; /* مسافة أمان سفلية */
+            margin-bottom: 15px;
+            transition: opacity 0.3s ease;
         }
 
         .btn:active {
@@ -179,7 +180,7 @@
     <!-- منطقة اللعب والطيران للبالونات -->
     <div id="game-area"></div>
 
-    <!-- الزر الأخضر المرتفع والواضح تماماً -->
+    <!-- زر البدء سيتغير ظهوره برمجياً -->
     <button class="btn" id="start-btn" onclick="startGame()">ابدأ التعلم واللعب 🔄</button>
 
 <script>
@@ -187,6 +188,7 @@ const gameArea = document.getElementById("game-area");
 const learningCard = document.getElementById("learning-card");
 const timerBadge = document.getElementById("timer-badge");
 const countdownSpan = document.getElementById("countdown");
+const startBtn = document.getElementById("start-btn");
 
 let wordIndex = 0;
 let spawnInterval;
@@ -222,27 +224,39 @@ const alphabetData = [
     { letter: "Z z", char: "Z", word: "Zebra", arabic: "حمار وحشي", emoji: "🦓" }
 ];
 
-function speak(text, rate = 0.75) {
-    if ('speechSynthesis' in window) {
-        let utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        utterance.rate = rate; 
-        window.speechSynthesis.speak(utterance);
-    }
+// دالة نطق تعيد وعوداً (Promise) لضمان انتظار انتهاء الكلمة تماماً قبل التكرار التالي
+function speakWithPromise(text, rate) {
+    return new Promise((resolve) => {
+        if ('speechSynthesis' in window) {
+            let utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = rate;
+            utterance.onend = () => {
+                // عمل وقفة قصيرة (400 مللي ثانية) بعد انتهاء نطق الكلمة
+                setTimeout(resolve, 400); 
+            };
+            window.speechSynthesis.speak(utterance);
+        } else {
+            resolve();
+        }
+    });
 }
 
-// دالة الترديد الذكي: 3 مرات عادية ثم 3 مرات متباطلة
-function repeatWordChain(wordText) {
+// دالة الترديد المتتابع والمنظم بالوقوف
+async function repeatWordChainWithPauses(wordText) {
     if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // تصفية أي صوت سابق
+        window.speechSynthesis.cancel(); // إلغاء أي تراكمات صوتية سابقة
         
-        // المرات الـ 3 الأولى: سرعة عادية طبيعية (0.8)
+        // 3 مرات سرعة عادية مع وقف بينها
         for (let i = 0; i < 3; i++) {
-            speak(wordText, 0.8);
+            if (!isPaused) break; // توقف إذا تم إعادة اللعبة
+            await speakWithPromise(wordText, 0.85);
         }
-        // المرات الـ 3 الأخيرة: سرعة بطيئة جداً ومريحة للطفل (0.45)
+        
+        // 3 مرات سرعة بطيئة جداً وممتازة مع وقف بينها
         for (let i = 0; i < 3; i++) {
-            speak(wordText, 0.45);
+            if (!isPaused) break;
+            await speakWithPromise(wordText, 0.5);
         }
     }
 }
@@ -254,7 +268,6 @@ function updateCard() {
     document.getElementById("lbl-arabic").innerText = current.arabic;
 }
 
-// تأثير انفجار الفرقعات الملونة الاحتفالية
 function createConfettiExplosion() {
     for (let i = 0; i < 40; i++) {
         const confetti = document.createElement("div");
@@ -302,7 +315,7 @@ function createBalloon() {
     });
 }
 
-function handlePop(balloon, letterText) {
+async function handlePop(balloon, letterText) {
     if (isPaused) return;
     
     let currentTarget = alphabetData[wordIndex];
@@ -310,21 +323,21 @@ function handlePop(balloon, letterText) {
     if (letterText === currentTarget.char) {
         isPaused = true;
         
-        // تشغيل نظام الترديد الصوتي المبتكر (6 مرات)
-        repeatWordChain(currentTarget.word);
-        
-        // فرقعة البالونة الحالية
+        // فرقعة البالونة المحددة
         balloon.style.transform = "scale(1.4)";
         balloon.style.opacity = "0";
         setTimeout(() => balloon.remove(), 100);
         
-        // تنظيف ساحة اللعب وإطلاق الفرقعات الاحتفالية الملونة
+        // تنظيف الشاشة والاحتفال بالفرقعات
         gameArea.innerHTML = "";
         createConfettiExplosion();
         
-        // تشغيل تأثير الفلاش للوحة وتفعيل العداد
+        // تنشيط فلاش اللوحة والعداد
         learningCard.classList.add("correct-flash");
         timerBadge.style.display = "inline-block";
+        
+        // البدء في تكرار الكلمة صوتياً بانتظام مع الفواصل الزمنية المحددة
+        repeatWordChainWithPauses(currentTarget.word);
         
         let timeLeft = 10;
         countdownSpan.innerText = timeLeft;
@@ -339,9 +352,23 @@ function handlePop(balloon, letterText) {
                 timerBadge.style.display = "none";
                 isPaused = false;
                 
-                wordIndex = (wordIndex + 1) % alphabetData.length;
-                updateCard();
-                speak("Find the letter " + alphabetData[wordIndex].char, 0.75);
+                // الانتقال إلى الحرف القادم أو إعلان نهاية اللعبة وعودة الزر
+                if (wordIndex < alphabetData.length - 1) {
+                    wordIndex++;
+                    updateCard();
+                    speakWithPromise("Find the letter " + alphabetData[wordIndex].char, 0.75);
+                } else {
+                    // إذا وصل الطفل لنهاية الحروف الحرف (Z)
+                    gameArea.innerHTML = "<div style='text-align:center; font-size:1.4rem; padding-top:40px; color:#10b981; font-weight:bold;'>🎉 أحسنت يا بطل! أنهيت كل الحروف! 🎉</div>";
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                        let endUtterance = new SpeechSynthesisUtterance("Great job! You finished all the letters!");
+                        endUtterance.lang = 'en-US';
+                        window.speechSynthesis.speak(endUtterance);
+                    }
+                    startBtn.style.display = "inline-block"; // إرجاع الزر لتكرار اللعبة من جديد
+                    startBtn.innerText = "العب من جديد 🔄";
+                }
             }
         }, 1000);
 
@@ -357,10 +384,11 @@ function startGame() {
     gameArea.innerHTML = "";
     learningCard.classList.remove("correct-flash");
     timerBadge.style.display = "none";
+    startBtn.style.display = "none"; // إخفاء الزر تماماً عند بدء اللعب لتوسيع مساحة الشاشة
     updateCard();
     clearInterval(spawnInterval);
     spawnInterval = setInterval(createBalloon, 1200);
-    speak("Let's learn English! Find the letter " + alphabetData[wordIndex].char, 0.75);
+    speakWithPromise("Let's learn English! Find the letter " + alphabetData[wordIndex].char, 0.75);
 }
 
 updateCard();
