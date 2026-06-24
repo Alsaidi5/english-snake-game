@@ -19,18 +19,18 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            padding: 15px;
+            justify-content: space-between; /* توزيع العناصر لملء الشاشة بشكل متناسق */
+            height: 100vh;
+            padding: 10px;
             overflow: hidden;
         }
 
         h1 {
             color: #db2777;
-            font-size: 1.8rem;
-            text-shadow: 2px 2px #fbcfe8;
-            margin-bottom: 10px;
+            font-size: 1.4rem;
+            text-shadow: 1px 1px #fbcfe8;
             text-align: center;
+            margin-top: 5px;
         }
 
         /* اللوحة التعليمية الكبيرة والثابتة */
@@ -38,91 +38,106 @@
             background: #ffffff;
             border: 4px solid #f43f5e;
             border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(244, 63, 94, 0.2);
+            box-shadow: 0 8px 20px rgba(244, 63, 94, 0.15);
             width: 100%;
-            max-width: 360px;
-            padding: 15px;
+            max-width: 340px;
+            padding: 12px;
             text-align: center;
-            margin-bottom: 15px;
-            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        /* فلاش أخضر عند الإجابة الصحيحة */
+        .correct-flash {
+            background: #d1fae5 !important;
+            border-color: #10b981 !important;
+            transform: scale(1.05);
         }
 
         .main-letter {
-            font-size: 3.5rem;
+            font-size: 3rem;
             font-weight: bold;
             color: #1e3a8a;
             display: block;
-            margin-bottom: 5px;
+            line-height: 1.1;
         }
 
         .main-word {
-            font-size: 2rem;
+            font-size: 1.8rem;
             color: #0d9488;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin: 4px 0;
         }
 
         .main-arabic {
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             color: #4b5563;
         }
 
-        /* منطقة طيران البالونات */
+        /* عداد التوقف مخصص للأهل والطفل */
+        #timer-badge {
+            display: none;
+            background: #10b981;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: inline-block;
+        }
+
+        /* منطقة طيران البالونات - تم تصغير الارتفاع لتناسب الجوال */
         #game-area {
             position: relative;
             width: 100%;
-            max-width: 360px;
-            height: 50vh;
-            background: rgba(255, 255, 255, 0.4);
+            max-width: 340px;
+            height: 42vh; /* تناسب شاشات الجوال تماماً مع بقية العناصر */
+            background: rgba(255, 255, 255, 0.5);
             border: 3px dashed #60a5fa;
             border-radius: 20px;
             overflow: hidden;
-            z-index: 5;
         }
 
         /* تصميم البالونة الملونة */
         .balloon {
             position: absolute;
-            width: 65px;
-            height: 78px;
+            width: 55px;
+            height: 66px;
             border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: bold;
             color: white;
             cursor: pointer;
-            box-shadow: inset -5px -5px rgba(0,0,0,0.15), 0 5px 10px rgba(0,0,0,0.1);
+            box-shadow: inset -4px -4px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
             animation: floatUp var(--speed) linear forwards;
         }
 
-        /* حبل البالونة الصغير */
         .balloon::after {
             content: "↓";
             position: absolute;
-            bottom: -12px;
-            color: rgba(0,0,0,0.2);
-            font-size: 0.8rem;
+            bottom: -10px;
+            color: rgba(0,0,0,0.15);
+            font-size: 0.7rem;
         }
 
         @keyframes floatUp {
-            0% { transform: translateY(100vh); }
-            100% { transform: translateY(-120px); }
+            0% { transform: translateY(50vh); }
+            100% { transform: translateY(-90px); }
         }
 
         .btn {
             background-color: #10b981;
             color: white;
             border: none;
-            padding: 12px 28px;
-            font-size: 1.2rem;
+            padding: 10px 24px;
+            font-size: 1.1rem;
             font-weight: bold;
             border-radius: 50px;
             cursor: pointer;
-            margin-top: 15px;
+            margin-bottom: 10px;
             box-shadow: 0 4px #047857;
-            z-index: 10;
         }
 
         .btn:active {
@@ -139,16 +154,22 @@
         <span class="main-letter" id="lbl-letter">A a</span>
         <div class="main-word" id="lbl-word">Apple 🍎</div>
         <div class="main-arabic" id="lbl-arabic">تفاحة</div>
+        <div id="timer-badge" style="display: none;">ممتاز! القادم بعد: <span id="countdown">10</span></div>
     </div>
 
-    <div id="game-area" id="gameArea"></div>
+    <div id="game-area"></div>
 
-    <button class="btn" onclick="startGame()">ابدأ التعلم واللعب 🔄</button>
+    <button class="btn" id="start-btn" onclick="startGame()">ابدأ التعلم واللعب 🔄</button>
 
 <script>
 const gameArea = document.getElementById("game-area");
+const learningCard = document.getElementById("learning-card");
+const timerBadge = document.getElementById("timer-badge");
+const countdownSpan = document.getElementById("countdown");
+
 let wordIndex = 0;
 let spawnInterval;
+let isPaused = false; // لإيقاف اللعبة مؤقتاً لمدة 10 ثوانٍ عند الإجابة الصحيحة
 const colors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#9b59b6', '#ff6b81', '#20bf6b'];
 
 const alphabetData = [
@@ -185,7 +206,7 @@ function speak(text) {
         window.speechSynthesis.cancel();
         let utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-US';
-        utterance.rate = 0.75; 
+        utterance.rate = 0.7; 
         window.speechSynthesis.speak(utterance);
     }
 }
@@ -198,12 +219,13 @@ function updateCard() {
 }
 
 function createBalloon() {
+    if (isPaused) return; // منع خروج بالونات جديدة في فترة الانتظار والتركيز
+
     const balloon = document.createElement("div");
     balloon.classList.add("balloon");
 
-    // تحديد ما إذا كانت البالونة ستحمل الحرف الصحيح أم حرفاً عشوائياً آخر
     let currentTarget = alphabetData[wordIndex];
-    let isCorrect = Math.random() > 0.4; // 60% تطلع البالونة الصحيحة لسهولة اللعب
+    let isCorrect = Math.random() > 0.4; 
     
     if (isCorrect) {
         balloon.innerText = currentTarget.char;
@@ -212,60 +234,88 @@ function createBalloon() {
         balloon.innerText = randomLetter;
     }
 
-    // إعطاء البالونة لوناً وموقعاً وسرعة عشوائية تناسب شاشة الجوال الصغير
     balloon.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-    balloon.style.left = Math.random() * (gameArea.clientWidth - 70) + "px";
-    balloon.style.setProperty('--speed', (Math.random() * 2 + 3) + "s"); // تطير خلال 3 إلى 5 ثواني
+    balloon.style.left = Math.random() * (gameArea.clientWidth - 60) + "px";
+    balloon.style.setProperty('--speed', (Math.random() * 2 + 3.5) + "s"); 
 
-    // حدث اللمس أو الضغط (الفرقعة)
-    balloon.addEventListener("touchstart", (e) => {
+    // معالجة اللمس للعمل الفوري على الشاشات الذكية
+    const triggerPop = (e) => {
         e.preventDefault();
         handlePop(balloon, balloon.innerText);
-    });
-    balloon.addEventListener("mousedown", () => handlePop(balloon, balloon.innerText));
+    };
+    balloon.addEventListener("touchstart", triggerPop);
+    balloon.addEventListener("mousedown", triggerPop);
 
     gameArea.appendChild(balloon);
 
-    // حذف البالونة تلقائياً بعد خروجها من الشاشة لتخفيف الضغط عن الجوال
     balloon.addEventListener('animationend', () => {
         balloon.remove();
     });
 }
 
 function handlePop(balloon, letterText) {
+    if (isPaused) return; // تعطيل اللمس المتكرر أثناء مهلة الـ 10 ثوانٍ
+    
     let currentTarget = alphabetData[wordIndex];
     
     if (letterText === currentTarget.char) {
-        // نطق الحرف والكلمة فوراً عند الاختيار الصحيح
+        isPaused = true; // تفعيل وضع التوقف التعليمي
+        
+        // نطق تعليمي مميز
         speak(`${currentTarget.char}... ${currentTarget.word}`);
         
-        // تأثير بصري سريع للفرقعة قبل الحذف
-        balloon.style.transform = "scale(1.4)";
+        // تأثير بصري فوري على الكرت والبالونة المفرقعة
+        balloon.style.transform = "scale(1.5)";
         balloon.style.opacity = "0";
-        setTimeout(() => balloon.remove(), 100);
-
-        // مسح البالونات الحالية والانتقال للحرف التالي
+        setTimeout(() => balloon.remove(), 150);
+        
+        // تنظيف الشاشة بالكامل من باقي البالونات الطائرة لعدم التشتيت
         gameArea.innerHTML = "";
-        wordIndex = (wordIndex + 1) % alphabetData.length;
-        updateCard();
+        
+        // إضافة فلاش أخضر على لوحة المعلومات للتأكيد
+        learningCard.classList.add("correct-flash");
+        timerBadge.style.display = "inline-block";
+        
+        // بدء العداد التنازلي لمدة 10 ثوانٍ
+        let timeLeft = 10;
+        countdownSpan.innerText = timeLeft;
+        
+        let countdownInterval = setInterval(() => {
+            timeLeft--;
+            countdownSpan.innerText = timeLeft;
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                
+                // إعادة اللعبة للوضع الطبيعي والانتقال للحرف القادم
+                learningCard.classList.remove("correct-flash");
+                timerBadge.style.display = "none";
+                isPaused = false;
+                
+                wordIndex = (wordIndex + 1) % alphabetData.length;
+                updateCard();
+                speak("Find the letter " + alphabetData[wordIndex].char);
+            }
+        }, 1000);
+
     } else {
-        // إذا أخطأ الطفل: تهتز البالونة فقط ولا يفرقعها للتنبيه بلطف
-        balloon.style.transform = "translateX(10px)";
+        // بالونة خاطئة: تهتز بهدوء
+        balloon.style.transform = "translateX(8px)";
         setTimeout(() => balloon.style.transform = "none", 100);
     }
 }
 
 function startGame() {
+    isPaused = false;
     wordIndex = 0;
     gameArea.innerHTML = "";
+    learningCard.classList.remove("correct-flash");
+    timerBadge.style.display = "none";
     updateCard();
     clearInterval(spawnInterval);
-    // تظهر بالونة جديدة كل ثانية ونصف
-    spawnInterval = setInterval(createBalloon, 1400);
+    spawnInterval = setInterval(createBalloon, 1300);
     speak("Let's learn English! Find the letter " + alphabetData[wordIndex].char);
 }
 
-// تجهيز اللوحة فور فتح الصفحة
 updateCard();
 </script>
 
