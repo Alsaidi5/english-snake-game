@@ -1,253 +1,278 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لعبة ثعبان الحروف الإنجليزية 🐍</title>
-<style>
-body {
-font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-background-color: #f0f8ff;
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-min-height: 100vh;
-margin: 0;
-overflow: hidden;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لعبة ثعبان الحروف الإنجليزية 🐍</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            padding: 10px;
+            overflow-x: hidden;
+        }
 
-h1 {
-color: #ff4500;
-text-shadow: 2px 2px #ffe4b5;
-margin-bottom: 10px;
-font-size: 2rem;
-}
+        h1 {
+            color: #ff4500;
+            text-shadow: 1px 1px #ffe4b5;
+            margin-bottom: 5px;
+            font-size: 1.6rem;
+            text-align: center;
+        }
 
-#game-container {
-position: relative;
-background: #fff;
-border: 8px solid #32cd32;
-border-radius: 15px;
-box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-}
+        #game-container {
+            position: relative;
+            background: #fff;
+            border: 5px solid #32cd32;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 340px; /* تصغير العرض ليناسب الجوالات تماماً */
+        }
 
-canvas {
-background-color: #e6f7ff;
-display: block;
-border-radius: 8px;
-}
+        canvas {
+            background-color: #e6f7ff;
+            display: block;
+            border-radius: 6px;
+            width: 100%;
+            height: auto;
+        }
 
-#info-panel {
-text-align: center;
-margin-top: 15px;
-font-size: 1.5rem;
-font-weight: bold;
-color: #333;
-background: #ffe4e1;
-padding: 10px 20px;
-border-radius: 10px;
-border: 2px dashed #ff69b4;
-min-width: 300px;
-}
+        #info-panel {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            background: #ffe4e1;
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 2px dashed #ff69b4;
+            width: 100%;
+            max-width: 340px;
+        }
 
-.btn {
-background-color: #ffaa00;
-color: white;
-border: none;
-padding: 10px 20px;
-font-size: 1.2rem;
-border-radius: 8px;
-cursor: pointer;
-margin-top: 10px;
-box-shadow: 0 4px #cc8800;
-}
+        .btn {
+            background-color: #ffaa00;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 8px;
+            box-shadow: 0 3px #cc8800;
+        }
 
-.btn:active {
-box-shadow: 0 2px #cc8800;
-transform: translateY(2px);
-}
+        .btn:active {
+            box-shadow: 0 1px #cc8800;
+            transform: translateY(2px);
+        }
 
-#controls {
-display: grid;
-grid-template-columns: repeat(3, 60px);
-grid-template-rows: repeat(2, 60px);
-gap: 10px;
-margin-top: 15px;
-}
-.ctrl-btn {
-background: #32cd32;
-color: white;
-border: none;
-border-radius: 50%;
-font-size: 1.5rem;
-font-weight: bold;
-cursor: pointer;
-box-shadow: 0 4px #228b22;
-}
-.ctrl-btn:active { transform: translateY(2px); box-shadow: 0 2px #228b22; }
-#btn-up { grid-column: 2; grid-row: 1; }
-#btn-left { grid-column: 1; grid-row: 2; }
-#btn-down { grid-column: 2; grid-row: 2; }
-#btn-right { grid-column: 3; grid-row: 2; }
-</style>
+        /* تنسيق الأزرار لتظهر كاملة تحت بعض في الجوال */
+        #controls {
+            display: grid;
+            grid-template-columns: repeat(3, 65px);
+            grid-template-rows: repeat(2, 55px);
+            gap: 8px;
+            margin-top: 12px;
+            justify-content: center;
+            width: 100%;
+        }
+        .ctrl-btn {
+            background: #32cd32;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.4rem;
+            cursor: pointer;
+            box-shadow: 0 4px #228b22;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-user-select: none; /* لمنع التعليق أثناء اللمس المتكرر */
+            user-select: none;
+        }
+        .ctrl-btn:active { 
+            transform: translateY(2px); 
+            box-shadow: 0 1px #228b22; 
+        }
+        #btn-up { grid-column: 2; grid-row: 1; }
+        #btn-left { grid-column: 1; grid-row: 2; }
+        #btn-down { grid-column: 2; grid-row: 2; }
+        #btn-right { grid-column: 3; grid-row: 2; }
+    </style>
 </head>
 <body>
 
-<h1>🐍 ثعبان الكلمات السحرية ✨</h1>
+    <h1>🐍 ثعبان الكلمات السحرية ✨</h1>
+    
+    <div id="game-container">
+        <canvas id="gameCanvas" width="320" height="320"></canvas>
+    </div>
 
-<div id="game-container">
-<canvas id="gameCanvas" width="400" height="400"></canvas>
-</div>
+    <div id="info-panel">
+        المطلوب: <span id="target-word" style="color: #008080;">Aa Apple (تفاحة) 🍎</span>
+    </div>
 
-<div id="info-panel">
-المطلوب أكله: <span id="target-word" style="color: #008080;">Aa Apple (تفاحة) 🍎</span>
-</div>
+    <button class="btn" onclick="resetGame()">ابدأ اللعب 🔄</button>
 
-<button class="btn" onclick="resetGame()">ابدأ من جديد 🔄</button>
-
-<div id="controls">
-<button class="ctrl-btn" id="btn-up" onclick="changeDirection('UP')">⬆️</button>
-<button class="ctrl-btn" id="btn-left" onclick="changeDirection('LEFT')">⬅️</button>
-<button class="ctrl-btn" id="btn-down" onclick="changeDirection('DOWN')">⬇️</button>
-<button class="ctrl-btn" id="btn-right" onclick="changeDirection('RIGHT')">➡️</button>
-</div>
+    <div id="controls">
+        <button class="ctrl-btn" id="btn-up" onclick="changeDirection('UP')">⬆️</button>
+        <button class="ctrl-btn" id="btn-left" onclick="changeDirection('LEFT')">⬅️</button>
+        <button class="ctrl-btn" id="btn-down" onclick="changeDirection('DOWN')">⬇️</button>
+        <button class="ctrl-btn" id="btn-right" onclick="changeDirection('RIGHT')">➡️</button>
+    </div>
 
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-const box = 20;
+const box = 16; // تصغير حجم المربعات ليناسب أبعاد الجوال الجديدة
 let snake = [];
 let direction = "RIGHT";
 let wordIndex = 0;
 let gameInterval;
 
 const alphabetData = [
-{ letter: "A a", word: "Apple", arabic: "تفاحة", emoji: "🍎" },
-{ letter: "B b", word: "Banana", arabic: "موزة", emoji: "🍌" },
-{ letter: "C c", word: "Cat", arabic: "قطة", emoji: "🐱" },
-{ letter: "D d", word: "Dog", arabic: "كلب", emoji: "🐶" },
-{ letter: "E e", word: "Egg", arabic: "بيضة", emoji: "🥚" },
-{ letter: "F f", word: "Fish", arabic: "سمكة", emoji: "🐟" },
-{ letter: "G g", word: "Grapes", arabic: "عنب", emoji: "🍇" },
-{ letter: "H h", word: "Horse", arabic: "حصان", emoji: "🐴" },
-{ letter: "I i", word: "Ice cream", arabic: "مثلجات", emoji: "🍦" },
-{ letter: "J j", word: "Juice", arabic: "عصير", emoji: "🧃" },
-{ letter: "K k", word: "Kangaroo", arabic: "كانغرو", emoji: "🦘" },
-{ letter: "L l", word: "Lion", arabic: "أسد", emoji: "🦁" },
-{ letter: "M m", word: "Monkey", arabic: "قرد", emoji: "🐒" },
-{ letter: "N n", word: "Nut", arabic: "مكسرات", emoji: "🥜" },
-{ letter: "O o", word: "Orange", arabic: "برتقالة", emoji: "🍊" },
-{ letter: "P p", word: "Parrot", arabic: "ببغاء", emoji: "🦜" },
-{ letter: "Q q", word: "Queen", arabic: "ملكة", emoji: "👑" },
-{ letter: "R r", word: "Rabbit", arabic: "أرنب", emoji: "🐇" },
-{ letter: "S s", word: "Sun", arabic: "شمس", emoji: "☀️" },
-{ letter: "T t", word: "Tree", arabic: "شجرة", emoji: "🌳" },
-{ letter: "U u", word: "Umbrella", arabic: "مظلة", emoji: "☂️" },
-{ letter: "V v", word: "Van", arabic: "شاحنة صغيرة", emoji: "🚐" },
-{ letter: "W w", word: "Watermelon", arabic: "بطيخ", emoji: "🍉" },
-{ letter: "X x", word: "Xylophone", arabic: "إكسيلوفون", emoji: "🎼" },
-{ letter: "Y y", word: "Yo-yo", arabic: "يويو", emoji: "🪀" },
-{ letter: "Z z", word: "Zebra", arabic: "حمار وحشي", emoji: "🦓" }
+    { letter: "A a", word: "Apple", arabic: "تفاحة", emoji: "🍎" },
+    { letter: "B b", word: "Banana", arabic: "موزة", emoji: "🍌" },
+    { letter: "C c", word: "Cat", arabic: "قطة", emoji: "🐱" },
+    { letter: "D d", word: "Dog", arabic: "كلب", emoji: "🐶" },
+    { letter: "E e", word: "Egg", arabic: "بيضة", emoji: "🥚" },
+    { letter: "F f", word: "Fish", arabic: "سمكة", emoji: "🐟" },
+    { letter: "G g", word: "Grapes", arabic: "عنب", emoji: "🍇" },
+    { letter: "H h", word: "Horse", arabic: "حصان", emoji: "🐴" },
+    { letter: "I i", word: "Ice cream", arabic: "مثلجات", emoji: "🍦" },
+    { letter: "J j", word: "Juice", arabic: "عصير", emoji: "🧃" },
+    { letter: "K k", word: "Kangaroo", arabic: "كانغرو", emoji: "🦘" },
+    { letter: "L l", word: "Lion", arabic: "أسد", emoji: "🦁" },
+    { letter: "M m", word: "Monkey", arabic: "قرد", emoji: "🐒" },
+    { letter: "N n", word: "Nut", arabic: "مكسرات", emoji: "🥜" },
+    { letter: "O o", word: "Orange", arabic: "برتقالة", emoji: "🍊" },
+    { letter: "P p", word: "Parrot", arabic: "ببغاء", emoji: "🦜" },
+    { letter: "Q q", word: "Queen", arabic: "ملكة", emoji: "👑" },
+    { letter: "R r", word: "Rabbit", arabic: "أرنب", emoji: "🐇" },
+    { letter: "S s", word: "Sun", arabic: "شمس", emoji: "☀️" },
+    { letter: "T t", word: "Tree", arabic: "شجرة", emoji: "🌳" },
+    { letter: "U u", word: "Umbrella", arabic: "مظلة", emoji: "☂️" },
+    { letter: "V v", word: "Van", arabic: "شاحنة صغيرة", emoji: "🚐" },
+    { letter: "W w", word: "Watermelon", arabic: "بطيخ", emoji: "🍉" },
+    { letter: "X x", word: "Xylophone", arabic: "إكسيلوفون", emoji: "🎼" },
+    { letter: "Y y", word: "Yo-yo", arabic: "يويو", emoji: "🪀" },
+    { letter: "Z z", word: "Zebra", arabic: "حمار وحشي", emoji: "🦓" }
 ];
 
+// التأكد من أن الإحداثيات تقع داخل الأبعاد الجديدة (320 / 16 = 20 مربع)
 let food = {
-x: Math.floor(Math.random() * 19 + 1) * box,
-y: Math.floor(Math.random() * 19 + 1) * box
+    x: Math.floor(Math.random() * 18 + 1) * box,
+    y: Math.floor(Math.random() * 18 + 1) * box
 };
 
 document.addEventListener("keydown", handleKeyPress);
 
 function handleKeyPress(event) {
-if (event.keyCode == 37 && direction != "RIGHT") direction = "LEFT";
-else if (event.keyCode == 38 && direction != "DOWN") direction = "UP";
-else if (event.keyCode == 39 && direction != "LEFT") direction = "RIGHT";
-else if (event.keyCode == 40 && direction != "UP") direction = "DOWN";
+    if (event.keyCode == 37 && direction != "RIGHT") direction = "LEFT";
+    else if (event.keyCode == 38 && direction != "DOWN") direction = "UP";
+    else if (event.keyCode == 39 && direction != "LEFT") direction = "RIGHT";
+    else if (event.keyCode == 40 && direction != "UP") direction = "DOWN";
 }
 
 function changeDirection(dir) {
-if (dir == "LEFT" && direction != "RIGHT") direction = "LEFT";
-if (dir == "UP" && direction != "DOWN") direction = "UP";
-if (dir == "RIGHT" && direction != "LEFT") direction = "RIGHT";
-if (dir == "DOWN" && direction != "UP") direction = "DOWN";
+    if (dir == "LEFT" && direction != "RIGHT") direction = "LEFT";
+    if (dir == "UP" && direction != "DOWN") direction = "UP";
+    if (dir == "RIGHT" && direction != "LEFT") direction = "RIGHT";
+    if (dir == "DOWN" && direction != "UP") direction = "DOWN";
 }
 
 function speak(text) {
-if ('speechSynthesis' in window) {
-window.speechSynthesis.cancel();
-let utterance = new SpeechSynthesisUtterance(text);
-utterance.lang = 'en-US';
-utterance.rate = 0.8;
-window.speechSynthesis.speak(utterance);
-}
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        let utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.75; // إبطاء خفيف ليكون النطق واضحاً للطفل
+        window.speechSynthesis.speak(utterance);
+    }
 }
 
 function updateInfoPanel() {
-let current = alphabetData[wordIndex];
-document.getElementById("target-word").innerHTML =
-${current.letter} - ${current.word} (${current.arabic}) ${current.emoji};
+    let current = alphabetData[wordIndex];
+    document.getElementById("target-word").innerHTML = 
+        `${current.letter} - ${current.word} (${current.arabic}) ${current.emoji}`;
 }
 
 function resetGame() {
-snake = [{ x: 9 * box, y: 10 * box }];
-direction = "RIGHT";
-wordIndex = 0;
-updateInfoPanel();
-clearInterval(gameInterval);
-gameInterval = setInterval(draw, 160);
-speak("Let's play! Find " + alphabetData[wordIndex].word);
+    snake = [{ x: 5 * box, y: 10 * box }];
+    direction = "RIGHT";
+    wordIndex = 0;
+    updateInfoPanel();
+    clearInterval(gameInterval);
+    gameInterval = setInterval(draw, 180); // سرعة متزنة وممتازة للأطفال
+    speak("Let's play! Find " + alphabetData[wordIndex].word);
 }
 
 function draw() {
-ctx.fillStyle = "#e6f7ff";
-ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#e6f7ff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-for (let i = 0; i < snake.length; i++) {
-ctx.fillStyle = (i == 0) ? "#228b22" : "#32cd32";
-ctx.beginPath();
-ctx.arc(snake[i].x + box/2, snake[i].y + box/2, box/2, 0, 2 * Math.PI);
-ctx.fill();
+    // رسم الثعبان بشكل دوائر لطيفة
+    for (let i = 0; i < snake.length; i++) {
+        ctx.fillStyle = (i == 0) ? "#228b22" : "#32cd32";
+        ctx.beginPath();
+        ctx.arc(snake[i].x + box/2, snake[i].y + box/2, box/2, 0, 2 * Math.PI);
+        ctx.fill();
+    }
+
+    // رسم الهدف (الإيموجي المراد صيده)
+    let currentGoal = alphabetData[wordIndex];
+    ctx.font = "18px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(currentGoal.emoji, food.x + box/2, food.y + box/2);
+
+    let snakeX = snake[0].x;
+    let snakeY = snake[0].y;
+
+    if (direction == "LEFT") snakeX -= box;
+    if (direction == "UP") snakeY -= box;
+    if (direction == "RIGHT") snakeX += box;
+    if (direction == "DOWN") snakeY += box;
+
+    // ميزة عبور الجدران للجوال
+    if (snakeX < 0) snakeX = canvas.width - box;
+    if (snakeX >= canvas.width) snakeX = 0;
+    if (snakeY < 0) snakeY = canvas.height - box;
+    if (snakeY >= canvas.height) snakeY = 0;
+
+    // عند الأكل
+    if (snakeX == food.x && snakeY == food.y) {
+        speak(`${currentGoal.letter.split(' ')[0]}... ${currentGoal.word}`);
+        wordIndex = (wordIndex + 1) % alphabetData.length;
+        updateInfoPanel();
+        food = {
+            x: Math.floor(Math.random() * 18 + 1) * box,
+            y: Math.floor(Math.random() * 18 + 1) * box
+        };
+    } else {
+        snake.pop();
+    }
+
+    let newHead = { x: snakeX, y: snakeY };
+    snake.unshift(newHead);
 }
 
-let currentGoal = alphabetData[wordIndex];
-ctx.font = "20px Arial";
-ctx.textAlign = "center";
-ctx.textBaseline = "middle";
-ctx.fillText(currentGoal.emoji, food.x + box/2, food.y + box/2);
-
-let snakeX = snake[0].x;
-let snakeY = snake[0].y;
-
-if (direction == "LEFT") snakeX -= box;
-if (direction == "UP") snakeY -= box;
-if (direction == "RIGHT") snakeX += box;
-if (direction == "DOWN") snakeY += box;
-
-// ميزة العبور من الجدران بدون خسارة
-if (snakeX < 0) snakeX = canvas.width - box;
-if (snakeX >= canvas.width) snakeX = 0;
-if (snakeY < 0) snakeY = canvas.height - box;
-if (snakeY >= canvas.height) snakeY = 0;
-
-if (snakeX == food.x && snakeY == food.y) {
-speak(${currentGoal.letter.split(' ')[0]}... ${currentGoal.word});
-wordIndex = (wordIndex + 1) % alphabetData.length;
-updateInfoPanel();
-food = {
-x: Math.floor(Math.random() * 19 + 1) * box,
-y: Math.floor(Math.random() * 19 + 1) * box
-};
-} else {
-snake.pop();
-}
-
-let newHead = { x: snakeX, y: snakeY };
-snake.unshift(newHead);
-}
-
+// بدء التجهيز الأولي عند تحميل الصفحة
 resetGame();
 </script>
-
 </body>
 </html>
