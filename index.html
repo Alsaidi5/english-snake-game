@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>لعبة بالونات الحروف السحرية 🎈</title>
+    <title>لعبة بالونات الحروف السحرية والاختبار 🎈</title>
     <style>
         * {
             box-sizing: border-box;
@@ -84,12 +84,12 @@
             display: inline-block;
         }
 
-        /* منطقة طيران البالونات */
+        /* منطقة طيران البالونات والاختبار */
         #game-area {
             position: relative;
             width: 100%;
             max-width: 330px;
-            height: 42vh; /* تم إعطاء مساحة أوسع قليلاً بعد إخفاء الزر */
+            height: 42vh;
             background: rgba(255, 255, 255, 0.5);
             border: 3px dashed #60a5fa;
             border-radius: 18px;
@@ -100,18 +100,20 @@
         /* تصميم البالونة الملونة */
         .balloon {
             position: absolute;
-            width: 52px;
-            height: 62px;
+            width: 58px;
+            height: 68px;
             border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.1rem; /* تصغير الخط قليلاً لتتسع الكلمات العربية والإنجليزية داخل البالونة */
             font-weight: bold;
             color: white;
             cursor: pointer;
             box-shadow: inset -4px -4px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.1);
             animation: floatUp var(--speed) linear forwards;
+            text-align: center;
+            padding: 2px;
         }
 
         .balloon::after {
@@ -127,7 +129,6 @@
             100% { transform: translateY(-80px); }
         }
 
-        /* قطع الاحتفال الصغيرة المتطايرة */
         .confetti {
             position: absolute;
             width: 8px;
@@ -144,9 +145,18 @@
             100% { transform: translateY(200px) translateX(var(--x-move)) rotate(360deg); opacity: 0; }
         }
 
-        /* زر البدء */
+        /* حاوية الأزرار أسفل الشاشة */
+        #btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            max-width: 330px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
         .btn {
-            background-color: #10b981;
             color: white;
             border: none;
             padding: 10px 30px;
@@ -154,22 +164,30 @@
             font-weight: bold;
             border-radius: 50px;
             cursor: pointer;
+            width: 85%;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-green {
+            background-color: #10b981;
             box-shadow: 0 4px #047857;
-            margin-bottom: 15px;
-            transition: opacity 0.3s ease;
+        }
+        .btn-blue {
+            background-color: #3b82f6;
+            box-shadow: 0 4px #1d4ed8;
         }
 
         .btn:active {
-            box-shadow: 0 2px #047857;
             transform: translateY(2px);
+            box-shadow: 0 2px rgba(0,0,0,0.2);
         }
     </style>
 </head>
 <body>
 
-    <h1>🎈 فرقع بالونة الحرف الصحيح ✨</h1>
+    <h1 id="game-title">🎈 فرقع بالونة الحرف الصحيح ✨</h1>
     
-    <!-- الكرت التعليمي الكبير والثابت أمام الطفل -->
     <div id="learning-card">
         <span class="main-letter" id="lbl-letter">A a</span>
         <div class="main-word" id="lbl-word">Apple 🍎</div>
@@ -177,11 +195,12 @@
         <div id="timer-badge" style="display: none;">كرر مع الصوت 🗣️: <span id="countdown">10</span></div>
     </div>
 
-    <!-- منطقة اللعب والطيران للبالونات -->
     <div id="game-area"></div>
 
-    <!-- زر البدء سيتغير ظهوره برمجياً -->
-    <button class="btn" id="start-btn" onclick="startGame()">ابدأ التعلم واللعب 🔄</button>
+    <div id="btn-container">
+        <button class="btn btn-green" id="start-btn" onclick="startGame()">ابدأ التعلم واللعب 🔄</button>
+        <button class="btn btn-blue" id="quiz-btn" style="display: none;" onclick="startQuiz()">اختبر معلوماتك 🧠✨</button>
+    </div>
 
 <script>
 const gameArea = document.getElementById("game-area");
@@ -189,10 +208,17 @@ const learningCard = document.getElementById("learning-card");
 const timerBadge = document.getElementById("timer-badge");
 const countdownSpan = document.getElementById("countdown");
 const startBtn = document.getElementById("start-btn");
+const quizBtn = document.getElementById("quiz-btn");
+const gameTitle = document.getElementById("game-title");
 
 let wordIndex = 0;
 let spawnInterval;
 let isPaused = false;
+let isQuizMode = false; // لتحديد إذا كنا في طور اللعبة أو الاختبار العشوائي
+let quizScore = 0;
+let quizRound = 0;
+let currentQuizItem = null;
+
 const colors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#9b59b6', '#ff6b81', '#20bf6b'];
 
 const alphabetData = [
@@ -224,17 +250,13 @@ const alphabetData = [
     { letter: "Z z", char: "Z", word: "Zebra", arabic: "حمار وحشي", emoji: "🦓" }
 ];
 
-// دالة نطق تعيد وعوداً (Promise) لضمان انتظار انتهاء الكلمة تماماً قبل التكرار التالي
 function speakWithPromise(text, rate) {
     return new Promise((resolve) => {
         if ('speechSynthesis' in window) {
             let utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'en-US';
             utterance.rate = rate;
-            utterance.onend = () => {
-                // عمل وقفة قصيرة (400 مللي ثانية) بعد انتهاء نطق الكلمة
-                setTimeout(resolve, 400); 
-            };
+            utterance.onend = () => { setTimeout(resolve, 400); };
             window.speechSynthesis.speak(utterance);
         } else {
             resolve();
@@ -242,18 +264,13 @@ function speakWithPromise(text, rate) {
     });
 }
 
-// دالة الترديد المتتابع والمنظم بالوقوف
 async function repeatWordChainWithPauses(wordText) {
     if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // إلغاء أي تراكمات صوتية سابقة
-        
-        // 3 مرات سرعة عادية مع وقف بينها
+        window.speechSynthesis.cancel();
         for (let i = 0; i < 3; i++) {
-            if (!isPaused) break; // توقف إذا تم إعادة اللعبة
+            if (!isPaused) break;
             await speakWithPromise(wordText, 0.85);
         }
-        
-        // 3 مرات سرعة بطيئة جداً وممتازة مع وقف بينها
         for (let i = 0; i < 3; i++) {
             if (!isPaused) break;
             await speakWithPromise(wordText, 0.5);
@@ -288,18 +305,32 @@ function createBalloon() {
     balloon.classList.add("balloon");
 
     let currentTarget = alphabetData[wordIndex];
-    let isCorrect = Math.random() > 0.4; 
     
-    if (isCorrect) {
-        balloon.innerText = currentTarget.char;
+    if (isQuizMode) {
+        // بالونات طور الاختبار (تحمل الكلمات العربية)
+        let isCorrect = Math.random() > 0.5;
+        if (isCorrect) {
+            balloon.innerText = currentQuizItem.arabic;
+        } else {
+            let randomItem = alphabetData[Math.floor(Math.random() * alphabetData.length)];
+            while(randomItem.arabic === currentQuizItem.arabic) {
+                randomItem = alphabetData[Math.floor(Math.random() * alphabetData.length)];
+            }
+            balloon.innerText = randomItem.arabic;
+        }
     } else {
-        let randomLetter = alphabetData[Math.floor(Math.random() * alphabetData.length)].char;
-        balloon.innerText = randomLetter;
+        // بالونات الطور العادي (تحمل الأحرف الإنجليزية الكبيرة)
+        let isCorrect = Math.random() > 0.4; 
+        if (isCorrect) {
+            balloon.innerText = currentTarget.char;
+        } else {
+            balloon.innerText = alphabetData[Math.floor(Math.random() * alphabetData.length)].char;
+        }
     }
 
     balloon.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-    balloon.style.left = Math.random() * (gameArea.clientWidth - 55) + "px";
-    balloon.style.setProperty('--speed', (Math.random() * 1.5 + 3) + "s"); 
+    balloon.style.left = Math.random() * (gameArea.clientWidth - 60) + "px";
+    balloon.style.setProperty('--speed', (Math.random() * 1.5 + 3.2) + "s"); 
 
     const triggerPop = (e) => {
         e.preventDefault();
@@ -315,80 +346,146 @@ function createBalloon() {
     });
 }
 
-async function handlePop(balloon, letterText) {
+function handlePop(balloon, textContent) {
     if (isPaused) return;
     
-    let currentTarget = alphabetData[wordIndex];
-    
-    if (letterText === currentTarget.char) {
-        isPaused = true;
-        
-        // فرقعة البالونة المحددة
-        balloon.style.transform = "scale(1.4)";
-        balloon.style.opacity = "0";
-        setTimeout(() => balloon.remove(), 100);
-        
-        // تنظيف الشاشة والاحتفال بالفرقعات
-        gameArea.innerHTML = "";
-        createConfettiExplosion();
-        
-        // تنشيط فلاش اللوحة والعداد
-        learningCard.classList.add("correct-flash");
-        timerBadge.style.display = "inline-block";
-        
-        // البدء في تكرار الكلمة صوتياً بانتظام مع الفواصل الزمنية المحددة
-        repeatWordChainWithPauses(currentTarget.word);
-        
-        let timeLeft = 10;
-        countdownSpan.innerText = timeLeft;
-        
-        let countdownInterval = setInterval(() => {
-            timeLeft--;
-            countdownSpan.innerText = timeLeft;
-            if (timeLeft <= 0) {
-                clearInterval(countdownInterval);
-                
-                learningCard.classList.remove("correct-flash");
-                timerBadge.style.display = "none";
-                isPaused = false;
-                
-                // الانتقال إلى الحرف القادم أو إعلان نهاية اللعبة وعودة الزر
-                if (wordIndex < alphabetData.length - 1) {
-                    wordIndex++;
-                    updateCard();
-                    speakWithPromise("Find the letter " + alphabetData[wordIndex].char, 0.75);
-                } else {
-                    // إذا وصل الطفل لنهاية الحروف الحرف (Z)
-                    gameArea.innerHTML = "<div style='text-align:center; font-size:1.4rem; padding-top:40px; color:#10b981; font-weight:bold;'>🎉 أحسنت يا بطل! أنهيت كل الحروف! 🎉</div>";
-                    if ('speechSynthesis' in window) {
-                        window.speechSynthesis.cancel();
-                        let endUtterance = new SpeechSynthesisUtterance("Great job! You finished all the letters!");
-                        endUtterance.lang = 'en-US';
-                        window.speechSynthesis.speak(endUtterance);
-                    }
-                    startBtn.style.display = "inline-block"; // إرجاع الزر لتكرار اللعبة من جديد
-                    startBtn.innerText = "العب من جديد 🔄";
-                }
-            }
-        }, 1000);
-
+    if (isQuizMode) {
+        // التحقق في طور الاختبار (مقارنة بالكلمة العربية)
+        if (textContent === currentQuizItem.arabic) {
+            quizScore++;
+            nextQuizQuestion();
+        } else {
+            balloon.style.transform = "translateX(6px)";
+            setTimeout(() => balloon.style.transform = "none", 100);
+        }
     } else {
-        balloon.style.transform = "translateX(6px)";
-        setTimeout(() => balloon.style.transform = "none", 100);
+        // التحقق في الطور العادي التعليمي
+        let currentTarget = alphabetData[wordIndex];
+        if (textContent === currentTarget.char) {
+            isPaused = true;
+            
+            balloon.style.transform = "scale(1.4)";
+            balloon.style.opacity = "0";
+            setTimeout(() => balloon.remove(), 100);
+            
+            gameArea.innerHTML = "";
+            createConfettiExplosion();
+            
+            learningCard.classList.add("correct-flash");
+            timerBadge.style.display = "inline-block";
+            
+            repeatWordChainWithPauses(currentTarget.word);
+            
+            let timeLeft = 10;
+            countdownSpan.innerText = timeLeft;
+            
+            let countdownInterval = setInterval(() => {
+                timeLeft--;
+                countdownSpan.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    
+                    learningCard.classList.remove("correct-flash");
+                    timerBadge.style.display = "none";
+                    isPaused = false;
+                    
+                    if (wordIndex < alphabetData.length - 1) {
+                        wordIndex++;
+                        updateCard();
+                        speakWithPromise("Find the letter " + alphabetData[wordIndex].char, 0.75);
+                    } else {
+                        // نهاية اللعبة بنجاح وظهور الخيارات كاملة
+                        gameArea.innerHTML = "<div style='text-align:center; font-size:1.3rem; padding-top:40px; color:#10b981; font-weight:bold;'>🎉 ممتاز يا بطل! أنهيت كل الحروف! 🎉</div>";
+                        if ('speechSynthesis' in window) {
+                            window.speechSynthesis.cancel();
+                            let endUtterance = new SpeechSynthesisUtterance("Great job! You finished all the letters!");
+                            endUtterance.lang = 'en-US';
+                            window.speechSynthesis.speak(endUtterance);
+                        }
+                        startBtn.style.display = "inline-block";
+                        startBtn.innerText = "العب من جديد 🔄";
+                        quizBtn.style.display = "inline-block"; // إظهار زر الاختبار المطور هنا
+                    }
+                }
+            }, 1000);
+        } else {
+            balloon.style.transform = "translateX(6px)";
+            setTimeout(() => balloon.style.transform = "none", 100);
+        }
     }
 }
 
 function startGame() {
+    isQuizMode = false;
     isPaused = false;
     wordIndex = 0;
+    gameTitle.innerText = "🎈 فرقع بالونة الحرف الصحيح ✨";
     gameArea.innerHTML = "";
     learningCard.classList.remove("correct-flash");
     timerBadge.style.display = "none";
-    startBtn.style.display = "none"; // إخفاء الزر تماماً عند بدء اللعب لتوسيع مساحة الشاشة
+    startBtn.style.display = "none";
+    quizBtn.style.display = "none";
     updateCard();
     clearInterval(spawnInterval);
     spawnInterval = setInterval(createBalloon, 1200);
     speakWithPromise("Let's learn English! Find the letter " + alphabetData[wordIndex].char, 0.75);
+}
+
+/* طور الاختبار المطور */
+function startQuiz() {
+    isQuizMode = true;
+    quizScore = 0;
+    quizRound = 0;
+    gameTitle.innerText = "🧠 اختبر معلوماتك: فرقع الترجمة الصحيحة! ✨";
+    startBtn.style.display = "none";
+    quizBtn.style.display = "none";
+    clearInterval(spawnInterval);
+    nextQuizQuestion();
+    spawnInterval = setInterval(createBalloon, 1100); // طيران بالونات الكلمات أسرع قليلاً للتحدي
+}
+
+function nextQuizQuestion() {
+    gameArea.innerHTML = "";
+    createConfettiExplosion(); // فرقعات ترحيبية بين الأسئلة لزيادة المتعة
+    
+    if (quizRound < 5) { // الاختبار مكون من 5 جولات عشوائية ممتعة للأطفال
+        quizRound++;
+        // اختيار كلمة عشوائية من القائمة للاختبار عليها
+        currentQuizItem = alphabetData[Math.floor(Math.random() * alphabetData.length)];
+        
+        // تعديل لوحة العرض لتناسب الاختبار (إخفاء الحرف والعربي لإجبار الطفل على التفكير)
+        document.getElementById("lbl-letter").innerText = "🤔 ما معنى؟";
+        document.getElementById("lbl-word").innerText = `${currentQuizItem.word} ${currentQuizItem.emoji}`;
+        document.getElementById("lbl-arabic").innerText = "؟؟؟";
+        
+        speakWithPromise("Where is " + currentQuizItem.word, 0.8);
+    } else {
+        // نهاية الاختبار بنجاح وعرض النتيجة
+        clearInterval(spawnInterval);
+        gameArea.innerHTML = `
+            <div style='text-align:center; font-size:1.4rem; padding-top:30px; color:#3b82f6; font-weight:bold;'>
+                👑 كفو يا ذكي! 👑<br>
+                درجتك في الاختبار هي:<br>
+                <span style="font-size:2.5rem; color:#db2777;">${quizScore} / 5</span>
+            </div>`;
+            
+        document.getElementById("lbl-letter").innerText = "🎉 رائع جداً";
+        document.getElementById("lbl-word").innerText = "انتهى الاختبار ✨";
+        document.getElementById("lbl-arabic").innerText = "ممتاز ومبدع";
+        
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            let scoreUtterance = new SpeechSynthesisUtterance("Fantastic job! You are so smart!");
+            scoreUtterance.lang = 'en-US';
+            window.speechSynthesis.speak(scoreUtterance);
+        }
+        
+        // إعادة إظهار الأزرار مرة أخرى
+        startBtn.style.display = "inline-block";
+        startBtn.innerText = "العب من جديد 🔄";
+        quizBtn.style.display = "inline-block";
+        quizBtn.innerText = "أعد الاختبار 🧠✨";
+    }
 }
 
 updateCard();
