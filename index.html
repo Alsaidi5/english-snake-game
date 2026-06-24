@@ -3,276 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>لعبة ثعبان الحروف الإنجليزية 🐍</title>
+    <title>لعبة بالونات الحروف السحرية 🎈</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-user-select: none;
+            user-select: none;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f8ff;
+            background: linear-gradient(to bottom, #e0f2fe, #f0fdf4);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
             min-height: 100vh;
-            padding: 10px;
-            overflow-x: hidden;
+            padding: 15px;
+            overflow: hidden;
         }
 
         h1 {
-            color: #ff4500;
-            text-shadow: 1px 1px #ffe4b5;
-            margin-bottom: 5px;
-            font-size: 1.6rem;
+            color: #db2777;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px #fbcfe8;
+            margin-bottom: 10px;
             text-align: center;
         }
 
-        #game-container {
-            position: relative;
-            background: #fff;
-            border: 5px solid #32cd32;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        /* اللوحة التعليمية الكبيرة والثابتة */
+        #learning-card {
+            background: #ffffff;
+            border: 4px solid #f43f5e;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(244, 63, 94, 0.2);
             width: 100%;
-            max-width: 340px; /* تصغير العرض ليناسب الجوالات تماماً */
-        }
-
-        canvas {
-            background-color: #e6f7ff;
-            display: block;
-            border-radius: 6px;
-            width: 100%;
-            height: auto;
-        }
-
-        #info-panel {
+            max-width: 360px;
+            padding: 15px;
             text-align: center;
-            margin-top: 8px;
-            font-size: 1.1rem;
+            margin-bottom: 15px;
+            z-index: 10;
+        }
+
+        .main-letter {
+            font-size: 3.5rem;
             font-weight: bold;
-            color: #333;
-            background: #ffe4e1;
-            padding: 8px 10px;
-            border-radius: 10px;
-            border: 2px dashed #ff69b4;
+            color: #1e3a8a;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .main-word {
+            font-size: 2rem;
+            color: #0d9488;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .main-arabic {
+            font-size: 1.6rem;
+            color: #4b5563;
+        }
+
+        /* منطقة طيران البالونات */
+        #game-area {
+            position: relative;
             width: 100%;
-            max-width: 340px;
+            max-width: 360px;
+            height: 50vh;
+            background: rgba(255, 255, 255, 0.4);
+            border: 3px dashed #60a5fa;
+            border-radius: 20px;
+            overflow: hidden;
+            z-index: 5;
         }
 
-        .btn {
-            background-color: #ffaa00;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            font-size: 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 8px;
-            box-shadow: 0 3px #cc8800;
-        }
-
-        .btn:active {
-            box-shadow: 0 1px #cc8800;
-            transform: translateY(2px);
-        }
-
-        /* تنسيق الأزرار لتظهر كاملة تحت بعض في الجوال */
-        #controls {
-            display: grid;
-            grid-template-columns: repeat(3, 65px);
-            grid-template-rows: repeat(2, 55px);
-            gap: 8px;
-            margin-top: 12px;
-            justify-content: center;
-            width: 100%;
-        }
-        .ctrl-btn {
-            background: #32cd32;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.4rem;
-            cursor: pointer;
-            box-shadow: 0 4px #228b22;
+        /* تصميم البالونة الملونة */
+        .balloon {
+            position: absolute;
+            width: 65px;
+            height: 78px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
             display: flex;
             align-items: center;
             justify-content: center;
-            -webkit-user-select: none; /* لمنع التعليق أثناء اللمس المتكرر */
-            user-select: none;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            box-shadow: inset -5px -5px rgba(0,0,0,0.15), 0 5px 10px rgba(0,0,0,0.1);
+            animation: floatUp var(--speed) linear forwards;
         }
-        .ctrl-btn:active { 
-            transform: translateY(2px); 
-            box-shadow: 0 1px #228b22; 
+
+        /* حبل البالونة الصغير */
+        .balloon::after {
+            content: "↓";
+            position: absolute;
+            bottom: -12px;
+            color: rgba(0,0,0,0.2);
+            font-size: 0.8rem;
         }
-        #btn-up { grid-column: 2; grid-row: 1; }
-        #btn-left { grid-column: 1; grid-row: 2; }
-        #btn-down { grid-column: 2; grid-row: 2; }
-        #btn-right { grid-column: 3; grid-row: 2; }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh); }
+            100% { transform: translateY(-120px); }
+        }
+
+        .btn {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 4px #047857;
+            z-index: 10;
+        }
+
+        .btn:active {
+            box-shadow: 0 2px #047857;
+            transform: translateY(2px);
+        }
     </style>
 </head>
 <body>
 
-    <h1>🐍 ثعبان الكلمات السحرية ✨</h1>
+    <h1>🎈 فرقع بالونة الحرف الصحيح ✨</h1>
     
-    <div id="game-container">
-        <canvas id="gameCanvas" width="320" height="320"></canvas>
+    <div id="learning-card">
+        <span class="main-letter" id="lbl-letter">A a</span>
+        <div class="main-word" id="lbl-word">Apple 🍎</div>
+        <div class="main-arabic" id="lbl-arabic">تفاحة</div>
     </div>
 
-    <div id="info-panel">
-        المطلوب: <span id="target-word" style="color: #008080;">Aa Apple (تفاحة) 🍎</span>
-    </div>
+    <div id="game-area" id="gameArea"></div>
 
-    <button class="btn" onclick="resetGame()">ابدأ اللعب 🔄</button>
-
-    <div id="controls">
-        <button class="ctrl-btn" id="btn-up" onclick="changeDirection('UP')">⬆️</button>
-        <button class="ctrl-btn" id="btn-left" onclick="changeDirection('LEFT')">⬅️</button>
-        <button class="ctrl-btn" id="btn-down" onclick="changeDirection('DOWN')">⬇️</button>
-        <button class="ctrl-btn" id="btn-right" onclick="changeDirection('RIGHT')">➡️</button>
-    </div>
+    <button class="btn" onclick="startGame()">ابدأ التعلم واللعب 🔄</button>
 
 <script>
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-
-const box = 16; // تصغير حجم المربعات ليناسب أبعاد الجوال الجديدة
-let snake = [];
-let direction = "RIGHT";
+const gameArea = document.getElementById("game-area");
 let wordIndex = 0;
-let gameInterval;
+let spawnInterval;
+const colors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#9b59b6', '#ff6b81', '#20bf6b'];
 
 const alphabetData = [
-    { letter: "A a", word: "Apple", arabic: "تفاحة", emoji: "🍎" },
-    { letter: "B b", word: "Banana", arabic: "موزة", emoji: "🍌" },
-    { letter: "C c", word: "Cat", arabic: "قطة", emoji: "🐱" },
-    { letter: "D d", word: "Dog", arabic: "كلب", emoji: "🐶" },
-    { letter: "E e", word: "Egg", arabic: "بيضة", emoji: "🥚" },
-    { letter: "F f", word: "Fish", arabic: "سمكة", emoji: "🐟" },
-    { letter: "G g", word: "Grapes", arabic: "عنب", emoji: "🍇" },
-    { letter: "H h", word: "Horse", arabic: "حصان", emoji: "🐴" },
-    { letter: "I i", word: "Ice cream", arabic: "مثلجات", emoji: "🍦" },
-    { letter: "J j", word: "Juice", arabic: "عصير", emoji: "🧃" },
-    { letter: "K k", word: "Kangaroo", arabic: "كانغرو", emoji: "🦘" },
-    { letter: "L l", word: "Lion", arabic: "أسد", emoji: "🦁" },
-    { letter: "M m", word: "Monkey", arabic: "قرد", emoji: "🐒" },
-    { letter: "N n", word: "Nut", arabic: "مكسرات", emoji: "🥜" },
-    { letter: "O o", word: "Orange", arabic: "برتقالة", emoji: "🍊" },
-    { letter: "P p", word: "Parrot", arabic: "ببغاء", emoji: "🦜" },
-    { letter: "Q q", word: "Queen", arabic: "ملكة", emoji: "👑" },
-    { letter: "R r", word: "Rabbit", arabic: "أرنب", emoji: "🐇" },
-    { letter: "S s", word: "Sun", arabic: "شمس", emoji: "☀️" },
-    { letter: "T t", word: "Tree", arabic: "شجرة", emoji: "🌳" },
-    { letter: "U u", word: "Umbrella", arabic: "مظلة", emoji: "☂️" },
-    { letter: "V v", word: "Van", arabic: "شاحنة صغيرة", emoji: "🚐" },
-    { letter: "W w", word: "Watermelon", arabic: "بطيخ", emoji: "🍉" },
-    { letter: "X x", word: "Xylophone", arabic: "إكسيلوفون", emoji: "🎼" },
-    { letter: "Y y", word: "Yo-yo", arabic: "يويو", emoji: "🪀" },
-    { letter: "Z z", word: "Zebra", arabic: "حمار وحشي", emoji: "🦓" }
+    { letter: "A a", char: "A", word: "Apple", arabic: "تفاحة", emoji: "🍎" },
+    { letter: "B b", char: "B", word: "Banana", arabic: "موزة", emoji: "🍌" },
+    { letter: "C c", char: "C", word: "Cat", arabic: "قطة", emoji: "🐱" },
+    { letter: "D d", char: "D", word: "Dog", arabic: "كلب", emoji: "🐶" },
+    { letter: "E e", char: "E", word: "Egg", arabic: "بيضة", emoji: "🥚" },
+    { letter: "F f", char: "F", word: "Fish", arabic: "سمكة", emoji: "🐟" },
+    { letter: "G g", char: "G", word: "Grapes", arabic: "عنب", emoji: "🍇" },
+    { letter: "H h", char: "H", word: "Horse", arabic: "حصان", emoji: "🐴" },
+    { letter: "I i", char: "I", word: "Ice cream", arabic: "مثلجات", emoji: "🍦" },
+    { letter: "J j", char: "J", word: "Juice", arabic: "عصير", emoji: "🧃" },
+    { letter: "K k", char: "K", word: "Kangaroo", arabic: "كانغرو", emoji: "🦘" },
+    { letter: "L l", char: "L", word: "Lion", arabic: "أسد", emoji: "🦁" },
+    { letter: "M m", char: "M", word: "Monkey", arabic: "قرد", emoji: "🐒" },
+    { letter: "N n", char: "N", word: "Nut", arabic: "مكسرات", emoji: "🥜" },
+    { letter: "O o", char: "O", word: "Orange", arabic: "برتقالة", emoji: "🍊" },
+    { letter: "P p", char: "P", word: "Parrot", arabic: "ببغاء", emoji: "🦜" },
+    { letter: "Q q", char: "Q", word: "Queen", arabic: "ملكة", emoji: "👑" },
+    { letter: "R r", char: "R", word: "Rabbit", arabic: "أرنب", emoji: "🐇" },
+    { letter: "S s", char: "S", word: "Sun", arabic: "شمس", emoji: "☀️" },
+    { letter: "T t", char: "T", word: "Tree", arabic: "شجرة", emoji: "🌳" },
+    { letter: "U u", char: "U", word: "Umbrella", arabic: "مظلة", emoji: "☂️" },
+    { letter: "V v", char: "V", word: "Van", arabic: "شاحنة صغيرة", emoji: "🚐" },
+    { letter: "W w", char: "W", word: "Watermelon", arabic: "بطيخ", emoji: "🍉" },
+    { letter: "X x", char: "X", word: "Xylophone", arabic: "إكسيلوفون", emoji: "🎼" },
+    { letter: "Y y", char: "Y", word: "Yo-yo", arabic: "يويو", emoji: "🪀" },
+    { letter: "Z z", char: "Z", word: "Zebra", arabic: "حمار وحشي", emoji: "🦓" }
 ];
-
-// التأكد من أن الإحداثيات تقع داخل الأبعاد الجديدة (320 / 16 = 20 مربع)
-let food = {
-    x: Math.floor(Math.random() * 18 + 1) * box,
-    y: Math.floor(Math.random() * 18 + 1) * box
-};
-
-document.addEventListener("keydown", handleKeyPress);
-
-function handleKeyPress(event) {
-    if (event.keyCode == 37 && direction != "RIGHT") direction = "LEFT";
-    else if (event.keyCode == 38 && direction != "DOWN") direction = "UP";
-    else if (event.keyCode == 39 && direction != "LEFT") direction = "RIGHT";
-    else if (event.keyCode == 40 && direction != "UP") direction = "DOWN";
-}
-
-function changeDirection(dir) {
-    if (dir == "LEFT" && direction != "RIGHT") direction = "LEFT";
-    if (dir == "UP" && direction != "DOWN") direction = "UP";
-    if (dir == "RIGHT" && direction != "LEFT") direction = "RIGHT";
-    if (dir == "DOWN" && direction != "UP") direction = "DOWN";
-}
 
 function speak(text) {
     if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         let utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-US';
-        utterance.rate = 0.75; // إبطاء خفيف ليكون النطق واضحاً للطفل
+        utterance.rate = 0.75; 
         window.speechSynthesis.speak(utterance);
     }
 }
 
-function updateInfoPanel() {
+function updateCard() {
     let current = alphabetData[wordIndex];
-    document.getElementById("target-word").innerHTML = 
-        `${current.letter} - ${current.word} (${current.arabic}) ${current.emoji}`;
+    document.getElementById("lbl-letter").innerText = current.letter;
+    document.getElementById("lbl-word").innerText = `${current.word} ${current.emoji}`;
+    document.getElementById("lbl-arabic").innerText = current.arabic;
 }
 
-function resetGame() {
-    snake = [{ x: 5 * box, y: 10 * box }];
-    direction = "RIGHT";
-    wordIndex = 0;
-    updateInfoPanel();
-    clearInterval(gameInterval);
-    gameInterval = setInterval(draw, 180); // سرعة متزنة وممتازة للأطفال
-    speak("Let's play! Find " + alphabetData[wordIndex].word);
-}
+function createBalloon() {
+    const balloon = document.createElement("div");
+    balloon.classList.add("balloon");
 
-function draw() {
-    ctx.fillStyle = "#e6f7ff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // رسم الثعبان بشكل دوائر لطيفة
-    for (let i = 0; i < snake.length; i++) {
-        ctx.fillStyle = (i == 0) ? "#228b22" : "#32cd32";
-        ctx.beginPath();
-        ctx.arc(snake[i].x + box/2, snake[i].y + box/2, box/2, 0, 2 * Math.PI);
-        ctx.fill();
-    }
-
-    // رسم الهدف (الإيموجي المراد صيده)
-    let currentGoal = alphabetData[wordIndex];
-    ctx.font = "18px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(currentGoal.emoji, food.x + box/2, food.y + box/2);
-
-    let snakeX = snake[0].x;
-    let snakeY = snake[0].y;
-
-    if (direction == "LEFT") snakeX -= box;
-    if (direction == "UP") snakeY -= box;
-    if (direction == "RIGHT") snakeX += box;
-    if (direction == "DOWN") snakeY += box;
-
-    // ميزة عبور الجدران للجوال
-    if (snakeX < 0) snakeX = canvas.width - box;
-    if (snakeX >= canvas.width) snakeX = 0;
-    if (snakeY < 0) snakeY = canvas.height - box;
-    if (snakeY >= canvas.height) snakeY = 0;
-
-    // عند الأكل
-    if (snakeX == food.x && snakeY == food.y) {
-        speak(`${currentGoal.letter.split(' ')[0]}... ${currentGoal.word}`);
-        wordIndex = (wordIndex + 1) % alphabetData.length;
-        updateInfoPanel();
-        food = {
-            x: Math.floor(Math.random() * 18 + 1) * box,
-            y: Math.floor(Math.random() * 18 + 1) * box
-        };
+    // تحديد ما إذا كانت البالونة ستحمل الحرف الصحيح أم حرفاً عشوائياً آخر
+    let currentTarget = alphabetData[wordIndex];
+    let isCorrect = Math.random() > 0.4; // 60% تطلع البالونة الصحيحة لسهولة اللعب
+    
+    if (isCorrect) {
+        balloon.innerText = currentTarget.char;
     } else {
-        snake.pop();
+        let randomLetter = alphabetData[Math.floor(Math.random() * alphabetData.length)].char;
+        balloon.innerText = randomLetter;
     }
 
-    let newHead = { x: snakeX, y: snakeY };
-    snake.unshift(newHead);
+    // إعطاء البالونة لوناً وموقعاً وسرعة عشوائية تناسب شاشة الجوال الصغير
+    balloon.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    balloon.style.left = Math.random() * (gameArea.clientWidth - 70) + "px";
+    balloon.style.setProperty('--speed', (Math.random() * 2 + 3) + "s"); // تطير خلال 3 إلى 5 ثواني
+
+    // حدث اللمس أو الضغط (الفرقعة)
+    balloon.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        handlePop(balloon, balloon.innerText);
+    });
+    balloon.addEventListener("mousedown", () => handlePop(balloon, balloon.innerText));
+
+    gameArea.appendChild(balloon);
+
+    // حذف البالونة تلقائياً بعد خروجها من الشاشة لتخفيف الضغط عن الجوال
+    balloon.addEventListener('animationend', () => {
+        balloon.remove();
+    });
 }
 
-// بدء التجهيز الأولي عند تحميل الصفحة
-resetGame();
+function handlePop(balloon, letterText) {
+    let currentTarget = alphabetData[wordIndex];
+    
+    if (letterText === currentTarget.char) {
+        // نطق الحرف والكلمة فوراً عند الاختيار الصحيح
+        speak(`${currentTarget.char}... ${currentTarget.word}`);
+        
+        // تأثير بصري سريع للفرقعة قبل الحذف
+        balloon.style.transform = "scale(1.4)";
+        balloon.style.opacity = "0";
+        setTimeout(() => balloon.remove(), 100);
+
+        // مسح البالونات الحالية والانتقال للحرف التالي
+        gameArea.innerHTML = "";
+        wordIndex = (wordIndex + 1) % alphabetData.length;
+        updateCard();
+    } else {
+        // إذا أخطأ الطفل: تهتز البالونة فقط ولا يفرقعها للتنبيه بلطف
+        balloon.style.transform = "translateX(10px)";
+        setTimeout(() => balloon.style.transform = "none", 100);
+    }
+}
+
+function startGame() {
+    wordIndex = 0;
+    gameArea.innerHTML = "";
+    updateCard();
+    clearInterval(spawnInterval);
+    // تظهر بالونة جديدة كل ثانية ونصف
+    spawnInterval = setInterval(createBalloon, 1400);
+    speak("Let's learn English! Find the letter " + alphabetData[wordIndex].char);
+}
+
+// تجهيز اللوحة فور فتح الصفحة
+updateCard();
 </script>
+
 </body>
 </html>
